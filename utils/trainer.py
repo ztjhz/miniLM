@@ -19,8 +19,8 @@ training_args = TrainingArguments(
     report_to='wandb', # enable logging to W&B
     evaluation_strategy='steps', # check evaluation metrics at each epoch
     logging_steps = 10, # we will log every 10 steps
-    eval_steps = 100, # we will perform evaluation every 100 steps
-    save_steps = 1000, # we will save the model every 1,000 steps
+    eval_steps = 50, # we will perform evaluation every 50 steps
+    save_steps = 50, # we will save the model every 50 steps
     load_best_model_at_end = True, # we will load the best model at the end of training
     metric_for_best_model = 'accuracy', # metric to see which model is better
     deepspeed='ds_config.json', # deep speed integration
@@ -70,11 +70,11 @@ def compute_metrics(pred: EvalPrediction):
 
     # Convert to CPU for serialization
     return {
-        "accuracy": accuracy_score.cpu().numpy(),
-        "precision": precision_score.cpu().numpy(),
-        "recall": recall_score.cpu().numpy(),
-        "f1": f1_score.cpu().numpy(),
-        "auroc": auroc_score.cpu().numpy(),
+        "accuracy": accuracy_score.cpu().item(),
+        "precision": precision_score.cpu().item(),
+        "recall": recall_score.cpu().item(),
+        "f1": f1_score.cpu().item(),
+        "auroc": auroc_score.cpu().item(),
     }
 
 class CustomTrainer(Trainer):
