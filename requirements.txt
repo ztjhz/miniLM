@@ -1,0 +1,7 @@
+# pytorch https://pytorch.org/get-started/locally/
+torchmetrics
+transformers
+accelerate
+datasets
+deepspeed
+wandb
