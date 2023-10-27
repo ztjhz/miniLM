@@ -1,0 +1,99 @@
+import os
+
+import torch
+from torchmetrics import Accuracy, Precision, Recall, F1Score, AUROC
+
+from transformers import Trainer, TrainingArguments, EvalPrediction
+
+import wandb
+
+os.environ["WANDB_ENTITY"] = "sc4001" # name of W&B team 
+os.environ["WANDB_PROJECT"] = "text-sentiment-analysis" # name of W&B project 
+
+wandb.login()
+
+# default optimizer: AdamW
+training_args = TrainingArguments(
+    output_dir='./results', # output directory of results
+    num_train_epochs=3, # number of train epochs
+    report_to='wandb', # enable logging to W&B
+    evaluation_strategy='steps', # check evaluation metrics at each epoch
+    logging_steps = 10, # we will log every 10 steps
+    eval_steps = 100, # we will perform evaluation every 100 steps
+    save_steps = 1000, # we will save the model every 1,000 steps
+    load_best_model_at_end = True, # we will load the best model at the end of training
+    metric_for_best_model = 'accuracy', # metric to see which model is better
+    deepspeed='ds_config.json', # deep speed integration
+    
+    #### effective batch_size = per_device_train_batch_size x gradient_accumulation_steps ####
+    #### We set effective batch_size to 32 ####
+    per_device_train_batch_size=8, # batch size per device
+    gradient_accumulation_steps=4, # gradient accumulation
+    per_device_eval_batch_size=8, # eval batch size per device
+)
+
+
+def compute_metrics(pred: EvalPrediction):
+    """
+    Compute metrics using torchmetrics for a given set of predictions and labels.
+
+    Args:
+    pred (EvalPrediction): An object containing model predictions and labels.
+
+    Returns:
+    dict: A dictionary containing metric results.
+    """
+    # Extract labels and predictions
+    labels = pred.label_ids
+    preds = pred.predictions
+
+    num_classes = preds.shape[1]
+
+    # Convert to torch tensors
+    labels = torch.tensor(labels)
+    preds = torch.tensor(preds)
+
+    # Initialize metrics
+    accuracy = Accuracy(task="multiclass", num_classes=num_classes)
+    precision = Precision(task="multiclass", num_classes=num_classes)
+    recall = Recall(task="multiclass", num_classes=num_classes)
+    f1 = F1Score(task="multiclass", num_classes=num_classes)
+    auroc = AUROC(task="multiclass", num_classes=num_classes)
+
+    # Calculate metrics (automatically does argmax)
+    accuracy_score = accuracy(preds, labels)
+    precision_score = precision(preds, labels)
+    recall_score = recall(preds, labels)
+    f1_score = f1(preds, labels)
+    auroc_score = auroc(preds, labels)
+
+
+    # Convert to CPU for serialization
+    return {
+        "accuracy": accuracy_score.cpu().numpy(),
+        "precision": precision_score.cpu().numpy(),
+        "recall": recall_score.cpu().numpy(),
+        "f1": f1_score.cpu().numpy(),
+        "auroc": auroc_score.cpu().numpy(),
+    }
+
+class CustomTrainer(Trainer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, compute_metrics=compute_metrics, args=training_args, **kwargs)
+
+    def compute_loss(self, model, inputs, return_outputs=False):
+        """
+        Override the default compute_loss. 
+        Use Cross Entropy Loss for multiclass classification (>= 2).
+        """
+        labels = inputs.pop("labels")
+
+        # forward pass
+        outputs = model(**inputs)
+        logits = outputs.get("logits")
+
+        # compute cross entropy loss
+        loss_func = torch.nn.CrossEntropyLoss()
+        loss = loss_func(logits.view(-1, self.model.config.num_labels), labels.view(-1))
+
+        return (loss, outputs) if return_outputs else loss
