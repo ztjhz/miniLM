@@ -21,6 +21,7 @@ training_args = TrainingArguments(
     logging_steps = 10, # we will log every 10 steps
     eval_steps = 50, # we will perform evaluation every 50 steps
     save_steps = 50, # we will save the model every 50 steps
+    save_total_limit = 5, # we only save the last 5 checkpoints (including the best one)
     load_best_model_at_end = True, # we will load the best model at the end of training
     metric_for_best_model = 'accuracy', # metric to see which model is better
     deepspeed='ds_config.json', # deep speed integration
@@ -78,7 +79,9 @@ def compute_metrics(pred: EvalPrediction):
     }
 
 class CustomTrainer(Trainer):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, run_name: str = None, **kwargs):
+        if run_name:
+            training_args.run_name = run_name # specify the run name for wandb logging
         super().__init__(*args, compute_metrics=compute_metrics, args=training_args, **kwargs)
 
     def compute_loss(self, model, inputs, return_outputs=False):
