@@ -19,6 +19,7 @@ eval_dataset = tokenized_datasets["test"]
 model = AutoModelForSequenceClassification.from_pretrained("bert-base-cased", num_labels=2)
 
 trainer = CustomTrainer(
+    run_name="Bert-CompareTransformers-Imdb",
     model=model,
     train_dataset=train_dataset,
     eval_dataset=eval_dataset,
