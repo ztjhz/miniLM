@@ -7,7 +7,7 @@ import numpy as np
 from transformers import GPT2ForSequenceClassification, LlamaModel
 
 def get_sliced_llama2(num_labels: int = 2, num_layers: int = 1):
-    model = GPT2ForSequenceClassification.from_pretrained('gpt2', num_labels=num_labels)
+    model = GPT2ForSequenceClassification.from_pretrained('meta-llama/Llama-2-7b-hf', num_labels=num_labels)
     
     hidden_layers = model.transformer.h
     del hidden_layers[num_layers:]
@@ -22,7 +22,7 @@ class SlicedLlama(nn.Module):
     def __init__(self, num_labels: int = 2):
         super(SlicedLlama, self).__init__()
 
-        self.llama = LlamaModel.from_pretrained("gpt2", output_hidden_states=True)
+        self.llama = LlamaModel.from_pretrained("meta-llama/Llama-2-7b-hf", output_hidden_states=True)
         self.num_layers = len(self.llama.layers)
         self.hidden_dimension = self.llama.layers[0].mlp.gate_proj.weight.shape[1]
         self.num_labels = num_labels
@@ -92,4 +92,4 @@ def compute_loss(all_layer_logits: np.ndarray, labels: np.ndarray, num_layers: i
     # e.g. loss = u + v -> loss with respective to the weights are u' + v'
     summed_loss = all_layer_loss.sum() # (num_layers) -> (1D tensor)
 
-    return summed_loss, all_layer_loss
+    return summed_loss, all_layer_loss # (1D tensor), # (num_layers)
