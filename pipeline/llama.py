@@ -17,19 +17,18 @@ from utils.trainer import compute_metrics
 NUM_EPOCH = 3
 
 def main():
+    # set up model
+    with open("ds_config_llama.json", "r") as f:
+        df_config = json.load(f)
+    model = SlicedLlama(num_labels=2)
+    model_engine, _, _, _ = deepspeed.initialize(model=model,
+                                                model_parameters=model.parameters(),
+                                                config=df_config)
+    
     # set up dataset
     dataset = load_dataset("imdb")
     tokenized_datasets = tokenize(dataset, "meta-llama/Llama-2-7b-hf")
     train_dataset, val_dataset, test_dataset = train_val_test_split(tokenized_datasets)
-
-    with open("ds_config_llama.json", "r") as f:
-        df_config = json.load(f)
-
-    # set up model
-    model = SlicedLlama(num_labels=2)
-    model_engine, _, _, _ = deepspeed.initialize(model=model,
-                                                 model_parameters=model.parameters(),
-                                                 config=df_config)
 
     # set up dataloader
     train_dataloader = DataLoader(train_dataset, batch_size=df_config["train_batch_size"])
