@@ -1,8 +1,11 @@
 import sys, pathlib; sys.path.append(str(pathlib.Path(__file__).parents[1]))
 
+import json
+
 import deepspeed
 import wandb
 import torch
+from torch.utils.data import DataLoader
 
 from datasets import load_dataset
 from transformers import EvalPrediction
@@ -14,30 +17,50 @@ from utils.trainer import compute_metrics
 NUM_EPOCH = 3
 
 def main():
+    # set up dataset
     dataset = load_dataset("imdb")
     tokenized_datasets = tokenize(dataset, "meta-llama/Llama-2-7b-hf")
     train_dataset, val_dataset, test_dataset = train_val_test_split(tokenized_datasets)
 
+    with open("df_config_llama.json", "r") as f:
+        df_config = json.load(f)
+
+    # set up model
     model = SlicedLlama(num_labels=2)
     model_engine, _, _, _ = deepspeed.initialize(model=model,
-                                                        model_parameters=model.parameters(),
-                                                        config="ds_config.json")
+                                                 model_parameters=model.parameters(),
+                                                 config=df_config)
+
+    # set up dataloader
+    train_dataloader = DataLoader(train_dataset, batch_size=df_config["train_batch_size"])
+    val_dataloader = DataLoader(val_dataset, batch_size=df_config["train_batch_size"])
+    test_dataloader = DataLoader(test_dataset, batch_size=df_config["train_batch_size"])
 
     # start wandb tracking
     if model_engine.global_rank == 0:
         wandb.init(
             project="text-sentiment-analysis",
             entity="sc4001",
-            name="Sliced Llama"
+            name="Sliced Llama",
+            config=df_config
             )
 
     for epoch in range(NUM_EPOCH):
-        for step, (data, labels) in enumerate(train_dataset):
+        print(f"Epoch {epoch + 1}/{NUM_EPOCH}")
+
+        for step, batch in enumerate(train_dataloader):
+            input_ids = batch['input_ids']
+            attention_mask = batch['attention_mask']
+            token_type_ids = batch['token_type_ids']
+            labels = batch['label']
+
             # set to train mode
             model_engine.train()
 
             # forward
-            all_output_logits = model_engine(data)
+            all_output_logits = model_engine(input_ids=input_ids, 
+                                             attention_mask=attention_mask, 
+                                             token_type_ids=token_type_ids)
 
             # compute loss
             summed_loss, all_layer_loss = compute_loss(all_layer_logits=all_output_logits, labels=labels, 
@@ -65,11 +88,16 @@ def main():
                 all_labels = torch.tensor([])
                 all_layer_logits = torch.tensor([])
                 with torch.no_grad():
-                    for batch in val_dataset:
-                        inputs, labels = batch # labels: (batch_size)
+                    for batch in val_dataloader:
+                        input_ids = batch['input_ids']
+                        attention_mask = batch['attention_mask']
+                        token_type_ids = batch['token_type_ids']
+                        labels = batch['label'] # labels: (batch_size)
 
                         # forward
-                        all_output_logits = model_engine(inputs) # (num_layers, batch_size, num_labels)
+                        all_output_logits = model_engine(input_ids=input_ids,
+                                                         attention_mask=attention_mask, 
+                                                         token_type_ids=token_type_ids) # (num_layers, batch_size, num_labels)
 
                         # accumulate all labels
                         all_labels = torch.concat([all_labels, labels])
@@ -92,6 +120,10 @@ def main():
                     # prepare wandb logs
                     for key, value in metrics.items():
                         wandb_log["eval"][f"layer_{i+1}_{key}"] = value
+
+            ########### save checkpoint ###########
+            if step % 50 == 0:
+                model_engine.save_checkpoint(save_dir="checkpoints")
 
             # log to wandb
             if model_engine.global_rank == 0:
