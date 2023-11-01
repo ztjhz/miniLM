@@ -1,3 +1,5 @@
+import sys, pathlib; sys.path.append(str(pathlib.Path(__file__).parents[1]))
+
 import deepspeed
 import wandb
 import torch
