@@ -25,6 +25,9 @@ class SlicedLlama(nn.Module):
         # The third item is all the hidden states from all layers.
         all_hidden_states  = outputs[2] # shape: (num_layers, batch_size, sequence_length, hidden_dimension)
 
+        # convert all_hidden_states from tuple to tensor
+        all_hidden_states = torch.stack([tensor for tensor in all_hidden_states])
+
         ############# Use the last token of each sequence for classification #############
 
         # get the last position of tokens
@@ -33,15 +36,11 @@ class SlicedLlama(nn.Module):
         else:
             non_padded_tokens = np.equal(input_ids, self.llama.config.pad_token_id) # (batch_size, sequence_length)
             last_token_positions = non_padded_tokens.argmin(-1) - 1 # (batch_size)
-
-        # broadcast across num_layers dimension
-        last_token_positions = last_token_positions[None, :] # (1, batch_size)
         
+        # create a range array for the batch dimension
+        batch_range = np.arange(all_hidden_states.shape[1])
         # select the last token for every layer and batch
-        new_hidden_states = all_hidden_states[:, :, last_token_positions, :] # (num_layers, batch_size, 1, hidden_dimension)
-
-        # remove singleton dimension
-        new_hidden_states = new_hidden_states.squeeze(2) # (num_layers, batch_size, hidden_dimension)
+        new_hidden_states = all_hidden_states[:, batch_range, last_token_positions] # (num_layers, batch_size, hidden_dimension)
 
         # forward the hidden states to the classification layers
         # classification layer is of shape (hidden_dimension, num_labels)
