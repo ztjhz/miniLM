@@ -76,7 +76,7 @@ def main():
             # prepare wandb logs
             wandb_log = {}
             for i in range(model.num_layers):
-                wandb_log[f"train/layer_{i+1}_loss"] = all_layer_loss[i]
+                wandb_log[f"train_loss/layer_{i+1}"] = all_layer_loss[i]
 
             ########### validation ###########
             if step % 1000 == 0:
@@ -115,7 +115,7 @@ def main():
 
                     # prepare wandb logs
                     for key, value in metrics.items():
-                        wandb_log[f"eval_metrics/layer_{i+1}_{key}"] = value
+                        wandb_log[f"eval_{key}/layer_{i+1}"] = value
 
             ########### save checkpoint ###########
             if step % 1000 == 0:
