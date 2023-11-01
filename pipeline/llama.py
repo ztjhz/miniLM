@@ -22,7 +22,7 @@ def main():
     tokenized_datasets = tokenize(dataset, "meta-llama/Llama-2-7b-hf")
     train_dataset, val_dataset, test_dataset = train_val_test_split(tokenized_datasets)
 
-    with open("df_config_llama.json", "r") as f:
+    with open("ds_config_llama.json", "r") as f:
         df_config = json.load(f)
 
     # set up model
