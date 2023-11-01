@@ -14,11 +14,6 @@ from utils.trainer import compute_metrics
 NUM_EPOCH = 3
 
 def main():
-    wandb.init(
-        project="text-sentiment-analysis",
-        entity="sc4001",
-        name="Sliced Llama"
-        )
     dataset = load_dataset("imdb")
     tokenized_datasets = tokenize(dataset, "meta-llama/Llama-2-7b-hf")
     train_dataset, val_dataset, test_dataset = train_val_test_split(tokenized_datasets)
@@ -28,6 +23,13 @@ def main():
                                                         model_parameters=model.parameters(),
                                                         config="ds_config.json")
 
+    # start wandb tracking
+    if model_engine.global_rank == 0:
+        wandb.init(
+            project="text-sentiment-analysis",
+            entity="sc4001",
+            name="Sliced Llama"
+            )
 
     for epoch in range(NUM_EPOCH):
         for step, (data, labels) in enumerate(train_dataset):
@@ -91,7 +93,13 @@ def main():
                     for key, value in metrics.items():
                         wandb_log["eval"][f"layer_{i+1}_{key}"] = value
 
-            wandb.log(wandb_log)
+            # log to wandb
+            if model_engine.global_rank == 0:
+                wandb.log(wandb_log)
+    
+    # end wandb tracking
+    if model_engine.global_rank == 0:
+        wandb.finish()
 
 if __name__ == "__main__":
     main()
