@@ -64,7 +64,7 @@ def compute_loss(all_layer_logits: torch.Tensor, labels: torch.Tensor, num_layer
         A tuple of summed_loss (1D tensor) and all_layer_loss (num_layers)
     """
     # replicate labels to all layers
-    labels = torch.tensor(labels).repeat(num_layers) # (batch_size) -> (num_layers, batch_size)
+    labels = labels.clone().detach().repeat(num_layers) # (batch_size) -> (num_layers, batch_size)
 
     ########### compute cross entropy loss ###########
     # collapse all dimensions for calculating loss
