@@ -78,7 +78,7 @@ def compute_loss(all_layer_logits: torch.Tensor, labels: torch.Tensor, num_layer
     logits = all_layer_logits.reshape(-1, num_labels) # (num_layers, batch_size, num_labels) -> (num_labels)
     
     # calculate loss
-    all_layer_loss = F.cross_entropy(logits, labels, reduction='none') # (num_layers)
+    all_layer_loss = F.cross_entropy(logits, labels.long(), reduction='none') # (num_layers)
     
     # sum loss for backpropagation
     # sum is used so that the derivative of the loss are independent of each other

@@ -47,7 +47,8 @@ def main():
             )
 
     for epoch in range(NUM_EPOCH):
-        print(f"Epoch {epoch + 1}/{NUM_EPOCH}")
+        if model_engine.global_rank == 0:
+            print(f"Epoch {epoch + 1}/{NUM_EPOCH}")
 
         for step, batch in enumerate(tqdm(train_dataloader)):
             input_ids = batch['input_ids'].to(torch.cuda.current_device())
