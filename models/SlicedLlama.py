@@ -4,19 +4,7 @@ import torch.nn.functional as F
 
 import numpy as np
 
-from transformers import GPT2ForSequenceClassification, LlamaModel
-
-def get_sliced_llama2(num_labels: int = 2, num_layers: int = 1):
-    model = GPT2ForSequenceClassification.from_pretrained('meta-llama/Llama-2-7b-hf', num_labels=num_labels)
-    
-    hidden_layers = model.transformer.h
-    del hidden_layers[num_layers:]
-    model.config.n_layer = num_layers
-    for name, param in model.transformer.named_parameters():
-        print(f"Freezed hidden_layer.{name}")
-        param.requires_grad = False
-    return model
-
+from transformers import LlamaModel
 
 class SlicedLlama(nn.Module):
     def __init__(self, num_labels: int = 2):
