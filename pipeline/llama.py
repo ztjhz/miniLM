@@ -7,6 +7,8 @@ import wandb
 import torch
 from torch.utils.data import DataLoader
 
+from tqdm import tqdm
+
 from datasets import load_dataset
 from transformers import EvalPrediction
 
@@ -47,10 +49,10 @@ def main():
     for epoch in range(NUM_EPOCH):
         print(f"Epoch {epoch + 1}/{NUM_EPOCH}")
 
-        for step, batch in enumerate(train_dataloader):
-            input_ids = batch['input_ids']
-            attention_mask = batch['attention_mask']
-            labels = batch['label']
+        for step, batch in enumerate(tqdm(train_dataloader)):
+            input_ids = batch['input_ids'].to(torch.cuda.current_device())
+            attention_mask = batch['attention_mask'].to(torch.cuda.current_device())
+            labels = batch['label'].to(torch.cuda.current_device())
 
             # set to train mode
             model_engine.train()
@@ -82,13 +84,13 @@ def main():
                 # set to eval mode
                 model_engine.eval()
 
-                all_labels = torch.tensor([])
-                all_layer_logits = torch.tensor([])
+                all_labels = torch.tensor([]).to(torch.cuda.current_device())
+                all_layer_logits = torch.tensor([]).to(torch.cuda.current_device())
                 with torch.no_grad():
                     for batch in val_dataloader:
-                        input_ids = batch['input_ids']
-                        attention_mask = batch['attention_mask']
-                        labels = batch['label'] # labels: (batch_size)
+                        input_ids = batch['input_ids'].to(torch.cuda.current_device())
+                        attention_mask = batch['attention_mask'].to(torch.cuda.current_device())
+                        labels = batch['label'].to(torch.cuda.current_device()) # labels: (batch_size)
 
                         # forward
                         all_output_logits = model_engine(input_ids=input_ids,

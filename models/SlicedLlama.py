@@ -50,9 +50,11 @@ class SlicedLlama(nn.Module):
             logits = classification_layer(hidden_state) # (batch_size, num_labels)
             all_output_logits.append(logits) # (num_layers, batch_size, num_labels)
         
-        return all_output_logits # (num_layers, batch_size, num_labels)
+        # convert to tensor
+        all_output_logits_tensor = torch.stack(all_output_logits, dim=0)
+        return all_output_logits_tensor # (num_layers, batch_size, num_labels)
     
-def compute_loss(all_layer_logits: np.ndarray, labels: np.ndarray, num_layers: int, num_labels: int):
+def compute_loss(all_layer_logits: torch.Tensor, labels: torch.Tensor, num_layers: int, num_labels: int):
     """
     Arg:
         all_layer_logits <num_layers, batch_size, num_labels>: The predicted unnormalized logits of the model for all layers.
