@@ -11,6 +11,10 @@ class SlicedLlama(nn.Module):
         super(SlicedLlama, self).__init__()
 
         self.llama = LlamaModel.from_pretrained("meta-llama/Llama-2-7b-hf", output_hidden_states=True)
+        # freeze llama model parameters
+        for param in self.llama.parameters():
+            param.requires_grad = False
+
         self.num_layers = len(self.llama.layers)
         self.hidden_dimension = self.llama.layers[0].mlp.gate_proj.weight.shape[1]
         self.num_labels = num_labels
