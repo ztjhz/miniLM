@@ -74,14 +74,12 @@ def main():
             model_engine.step()
 
             # prepare wandb logs
-            wandb_log = {"train": {}}
+            wandb_log = {}
             for i in range(model.num_layers):
-                wandb_log["train"][f"layer_{i+1}_loss"] = all_layer_loss[i]
+                wandb_log[f"train/layer_{i+1}_loss"] = all_layer_loss[i]
 
             ########### validation ###########
             if step % 1000 == 0:
-                wandb_log["eval"] = {}
-
                 # set to eval mode
                 model_engine.eval()
 
@@ -108,7 +106,7 @@ def main():
                                                             num_labels=model.num_labels, num_layers=model.num_layers) # (num_layers)
                 # prepare wandb logs
                 for i in range(model.num_layers):
-                    wandb_log["eval"][f"layer_{i+1}_loss"] = all_layer_loss[i]
+                    wandb_log[f"eval_loss/layer_{i+1}_loss"] = all_layer_loss[i]
 
                 # compute metrics
                 for i in range(model.num_layers):
@@ -117,7 +115,7 @@ def main():
 
                     # prepare wandb logs
                     for key, value in metrics.items():
-                        wandb_log["eval"][f"layer_{i+1}_{key}"] = value
+                        wandb_log[f"eval_metrics/layer_{i+1}_{key}"] = value
 
             ########### save checkpoint ###########
             if step % 1000 == 0:
