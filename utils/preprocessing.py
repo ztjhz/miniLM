@@ -27,5 +27,5 @@ def tokenize(dataset: Dataset | DatasetDict, tokenizer_name: str):
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
-    tokenized_datasets = dataset.map(_tokenize, batched=True).select_columns(["input_ids", "attention_mask", "token_type_ids", "label"])
+    tokenized_datasets = dataset.map(_tokenize, batched=True).select_columns(["input_ids", "attention_mask", "label"])
     return tokenized_datasets

@@ -51,7 +51,6 @@ def main():
         for step, batch in enumerate(train_dataloader):
             input_ids = batch['input_ids']
             attention_mask = batch['attention_mask']
-            token_type_ids = batch['token_type_ids']
             labels = batch['label']
 
             # set to train mode
@@ -59,12 +58,11 @@ def main():
 
             # forward
             all_output_logits = model_engine(input_ids=input_ids, 
-                                             attention_mask=attention_mask, 
-                                             token_type_ids=token_type_ids)
+                                             attention_mask=attention_mask)
 
             # compute loss
             summed_loss, all_layer_loss = compute_loss(all_layer_logits=all_output_logits, labels=labels, 
-                                num_labels=model.num_labels, num_layers=model.num_layers)
+                                                       num_labels=model.num_labels, num_layers=model.num_layers)
 
             # backward propagation
             model_engine.backward(summed_loss)
@@ -96,8 +94,7 @@ def main():
 
                         # forward
                         all_output_logits = model_engine(input_ids=input_ids,
-                                                         attention_mask=attention_mask, 
-                                                         token_type_ids=token_type_ids) # (num_layers, batch_size, num_labels)
+                                                         attention_mask=attention_mask) # (num_layers, batch_size, num_labels)
 
                         # accumulate all labels
                         all_labels = torch.concat([all_labels, labels])
