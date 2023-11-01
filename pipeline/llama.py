@@ -79,7 +79,7 @@ def main():
                 wandb_log["train"][f"layer_{i+1}_loss"] = all_layer_loss[i]
 
             ########### validation ###########
-            if step % 50 == 0:
+            if step % 1000 == 0:
                 wandb_log["eval"] = {}
 
                 # set to eval mode
@@ -120,7 +120,7 @@ def main():
                         wandb_log["eval"][f"layer_{i+1}_{key}"] = value
 
             ########### save checkpoint ###########
-            if step % 50 == 0:
+            if step % 1000 == 0:
                 model_engine.save_checkpoint(save_dir="checkpoints")
 
             # log to wandb

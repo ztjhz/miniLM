@@ -80,9 +80,8 @@ def compute_loss(all_layer_logits: torch.Tensor, labels: torch.Tensor, num_layer
     # calculate loss
     all_layer_loss = F.cross_entropy(logits, labels.long(), reduction='none') # (num_layers)
     
-    # sum loss for backpropagation
-    # sum is used so that the derivative of the loss are independent of each other
-    # e.g. loss = u + v -> loss with respective to the weights are u' + v'
-    summed_loss = all_layer_loss.sum() # (num_layers) -> (1D tensor)
+    # mean loss for backpropagation
+    # e.g. loss = (u + v) / 2 -> loss with respective to the weights are u'/2 + v'/2
+    summed_loss = all_layer_loss.mean() # (num_layers) -> (1D tensor)
 
     return summed_loss, all_layer_loss # (1D tensor), # (num_layers)
