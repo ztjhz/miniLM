@@ -51,15 +51,15 @@ def compute_metrics(pred: EvalPrediction):
     num_classes = preds.shape[1]
 
     # Convert to torch tensors
-    labels = torch.tensor(labels)
-    preds = torch.tensor(preds)
+    labels = labels.clone().detach().long()
+    preds = preds.clone().detach()
 
     # Initialize metrics
-    accuracy = Accuracy(task="multiclass", num_classes=num_classes)
-    precision = Precision(task="multiclass", num_classes=num_classes)
-    recall = Recall(task="multiclass", num_classes=num_classes)
-    f1 = F1Score(task="multiclass", num_classes=num_classes)
-    auroc = AUROC(task="multiclass", num_classes=num_classes)
+    accuracy = Accuracy(task="multiclass", num_classes=num_classes).to(torch.cuda.current_device())
+    precision = Precision(task="multiclass", num_classes=num_classes).to(torch.cuda.current_device())
+    recall = Recall(task="multiclass", num_classes=num_classes).to(torch.cuda.current_device())
+    f1 = F1Score(task="multiclass", num_classes=num_classes).to(torch.cuda.current_device())
+    auroc = AUROC(task="multiclass", num_classes=num_classes).to(torch.cuda.current_device())
 
     # Calculate metrics (automatically does argmax)
     accuracy_score = accuracy(preds, labels)
