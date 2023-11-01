@@ -88,7 +88,6 @@ def main():
                     for batch in val_dataloader:
                         input_ids = batch['input_ids']
                         attention_mask = batch['attention_mask']
-                        token_type_ids = batch['token_type_ids']
                         labels = batch['label'] # labels: (batch_size)
 
                         # forward

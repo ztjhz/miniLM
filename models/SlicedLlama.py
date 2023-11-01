@@ -16,8 +16,8 @@ class SlicedLlama(nn.Module):
         self.num_labels = num_labels
         self.classification_layers = nn.ModuleList([nn.Linear(self.hidden_dimension, self.num_labels) for _ in range(self.num_layers)])
     
-    def forward(self, input_ids, attention_mask: np.ndarray = None, token_type_ids: np.ndarray = None):
-        outputs = self.llama(input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids)
+    def forward(self, input_ids, attention_mask: np.ndarray = None):
+        outputs = self.llama(input_ids, attention_mask=attention_mask)
         
         # The model outputs are returned in the form of a tuple. 
         # The first item in the tuple is the sequence of hidden-states at the output of the last layer.
