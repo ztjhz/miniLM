@@ -19,8 +19,8 @@ training_args = TrainingArguments(
     report_to='wandb', # enable logging to W&B
     evaluation_strategy='steps', # check evaluation metrics at each epoch
     logging_steps = 10, # we will log every 10 steps
-    eval_steps = 500, # we will perform evaluation every 500 steps
-    save_steps = 500, # we will save the model every 500 steps
+    eval_steps = 200, # we will perform evaluation every 200 steps
+    save_steps = 200, # we will save the model every 200 steps
     save_total_limit = 5, # we only save the last 5 checkpoints (including the best one)
     load_best_model_at_end = True, # we will load the best model at the end of training
     metric_for_best_model = 'accuracy', # metric to see which model is better
@@ -51,8 +51,8 @@ def compute_metrics(pred: EvalPrediction):
     num_classes = preds.shape[1]
 
     # Convert to torch tensors
-    labels = labels.clone().detach().long()
-    preds = preds.clone().detach()
+    labels = torch.tensor(labels)
+    preds = torch.tensor(preds)
 
     # Initialize metrics
     accuracy = Accuracy(task="multiclass", num_classes=num_classes).to(torch.cuda.current_device())
