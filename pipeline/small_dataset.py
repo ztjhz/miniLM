@@ -4,10 +4,10 @@ import argparse
 
 import wandb
 
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, RobertaTokenizer, RobertaConfig
+from transformers import AutoModelForSequenceClassification, RobertaConfig
 from datasets import load_dataset
 
-from utils.trainer import CustomTrainer
+from utils.trainer import CustomTrainer, training_args
 from utils.preprocessing import tokenize, train_val_test_split
 
 def main():
@@ -32,6 +32,7 @@ def main():
     if args.init == 'train':
         model_name = "roberta-base"
         model = AutoModelForSequenceClassification.from_config(RobertaConfig.from_pretrained(model_name))
+        training_args.num_train_epochs = 20
     elif args.init == 'finetune':
         model_name = "siebert/sentiment-roberta-large-english"
         model = AutoModelForSequenceClassification.from_pretrained("siebert/sentiment-roberta-large-english")
@@ -50,6 +51,7 @@ def main():
 
     # create trainer
     trainer = CustomTrainer(
+        trainer_args=training_args,
         run_name=args.run_name,
         model=model,
         train_dataset=train_dataset,

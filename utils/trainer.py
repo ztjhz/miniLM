@@ -79,10 +79,13 @@ def compute_metrics(pred: EvalPrediction):
     }
 
 class CustomTrainer(Trainer):
-    def __init__(self, *args, run_name: str = None, **kwargs):
+    def __init__(self, *args, run_name: str = None, trainer_args: TrainingArguments = None, **kwargs):
+        if not trainer_args:
+            # set default training arguments if not supplied
+            trainer_args = training_args
         if run_name:
-            training_args.run_name = run_name # specify the run name for wandb logging
-        super().__init__(*args, compute_metrics=compute_metrics, args=training_args, **kwargs)
+            trainer_args.run_name = run_name # specify the run name for wandb logging
+        super().__init__(*args, compute_metrics=compute_metrics, args=trainer_args, **kwargs)
 
     def compute_loss(self, model, inputs, return_outputs=False):
         """
