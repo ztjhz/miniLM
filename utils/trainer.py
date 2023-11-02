@@ -27,10 +27,10 @@ training_args = TrainingArguments(
     deepspeed='ds_config.json', # deep speed integration
     
     #### effective batch_size = per_device_train_batch_size x gradient_accumulation_steps ####
-    #### We set effective batch_size to 32 ####
-    per_device_train_batch_size=8, # batch size per device
+    #### We set effective batch_size to 32 (8 x 4) ####
+    per_device_train_batch_size=int(8 / torch.cuda.device_count()), # batch size per device
+    per_device_eval_batch_size=int(8 / torch.cuda.device_count()), # eval batch size per device
     gradient_accumulation_steps=4, # gradient accumulation
-    per_device_eval_batch_size=8, # eval batch size per device
 )
 
 
