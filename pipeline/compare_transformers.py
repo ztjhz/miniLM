@@ -67,13 +67,6 @@ def main():
     # train
     trainer.train()
 
-    # evaluate on test set
-    test_results = trainer.predict(test_dataset=test_dataset)
-    metrics = test_results[-1]
-
-    wandb.log({f"test/{key}": value for key, value in metrics.items()})
-
-
 
 if __name__ == "__main__":
     main()
