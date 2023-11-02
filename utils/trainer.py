@@ -48,6 +48,10 @@ def compute_metrics(pred: EvalPrediction):
     labels = pred.label_ids
     preds = pred.predictions
 
+    # for t5 model, the predictions is in the form of a tuple with the logits as the only element in the tuple
+    if isinstance(preds, tuple):
+        preds = preds[0]
+
     num_classes = preds.shape[1]
 
     # Convert to torch tensors
