@@ -4,10 +4,10 @@ import argparse
 
 import wandb
 
-from transformers import AutoModelForSequenceClassification, RobertaConfig
+from transformers import AutoModelForSequenceClassification
 from datasets import load_dataset
 
-from utils.trainer import CustomTrainer
+from utils.trainer import CustomTrainer, training_args
 from utils.preprocessing import tokenize, train_val_test_split
 
 def main():
@@ -34,6 +34,13 @@ def main():
         dataset = load_dataset("yelp_review_full")
         num_labels = 5
         input_col_name = "text"
+        
+        # reduce epochs to 1 because train set is 650k
+        training_args.num_train_epochs = 1
+
+        # reduce frequency of eval and eval because got many steps
+        training_args.save_steps = 1000
+        training_args.eval_steps = 1000
     elif args.dataset == 'sst2':
         dataset = load_dataset("sst2")
         num_labels = 2
@@ -66,6 +73,7 @@ def main():
 
     # train
     trainer.train()
+
 
 
 if __name__ == "__main__":
