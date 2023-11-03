@@ -23,7 +23,7 @@ def train_val_test_split(dataset: Dataset | DatasetDict, seed: int = 42):
 
 def tokenize(dataset: Dataset | DatasetDict, tokenizer_name: str, input_col_name: str = "text"):
     def _tokenize(examples):
-        return tokenizer(examples[input_col_name], padding=True, truncation=True, max_length=512)
+        return tokenizer(examples[input_col_name], padding='max_length', truncation=True, max_length=512)
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
