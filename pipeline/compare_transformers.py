@@ -58,6 +58,9 @@ def main():
     else:
         raise NotImplementedError
     model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
+    if model.config.pad_token_id == None:
+        model.config.pad_token_id = model.config.eos_token_id
+
 
     # prepare dataset
     tokenized_datasets = tokenize(dataset, model_name, input_col_name=input_col_name)
