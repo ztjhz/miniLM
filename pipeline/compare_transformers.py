@@ -8,13 +8,15 @@ from transformers import AutoModelForSequenceClassification
 from datasets import load_dataset
 
 from utils.trainer import CustomTrainer, training_args
-from utils.preprocessing import tokenize, train_val_test_split
+from utils.preprocessing import tokenize, train_val_test_split, subset_dataset
 
 def main():
     parser = argparse.ArgumentParser(description='Small dataset experiments')
 
     parser.add_argument("--dataset", choices=['imdb', 'yelp', 'sst2'], default='imdb', help="Dataset to use")
     parser.add_argument("--model", choices=['roberta', 'gpt2', 't5'], default='roberta', help='Model to use')
+    # we provide an option to subset the dataset to reduce training time
+    parser.add_argument("--subset_yelp", type=bool, default=False, help='Model to use')
 
     # for deepspeed
     parser.add_argument("--local_rank")
@@ -24,6 +26,9 @@ def main():
     print(args)
 
     run_name = f"{args.model}-CompareTransformers-{args.dataset}"
+
+    if args.subset_yelp:
+        run_name += "_subset"
 
     # set up dataset
     if args.dataset == 'imdb':
@@ -65,6 +70,13 @@ def main():
     # prepare dataset
     tokenized_datasets = tokenize(dataset, model_name, input_col_name=input_col_name)
     train_dataset, val_dataset, test_dataset = train_val_test_split(tokenized_datasets)
+
+    if args.dataset =='yelp' and args.subset_yelp == True:
+        # yelp dataset has 650k train which would take very long to train
+        # we provide an option to subset the dataset to reduce training time
+        train_dataset = subset_dataset(train_dataset, size=25_000, seed=42)
+        val_dataset = subset_dataset(val_dataset, size=25_000, seed=42)
+        test_dataset = subset_dataset(test_dataset, size=25_000, seed=42)
 
     # create trainer
     trainer = CustomTrainer(

@@ -29,3 +29,10 @@ def tokenize(dataset: Dataset | DatasetDict, tokenizer_name: str, input_col_name
         tokenizer.pad_token = tokenizer.eos_token
     tokenized_datasets = dataset.map(_tokenize, batched=True).select_columns(["input_ids", "attention_mask", "label"]).with_format("torch")
     return tokenized_datasets
+
+def subset_dataset(dataset: Dataset | DatasetDict, 
+                   size: int,
+                   seed: int = 42):
+    shuffled_dataset = dataset.shuffle(seed=seed)
+    new_dataset = shuffled_dataset.select(range(size))
+    return new_dataset
