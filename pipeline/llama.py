@@ -110,7 +110,7 @@ def main():
 
                 # compute metrics
                 for i in range(model.num_layers):
-                    pred = EvalPrediction(predictions=all_layer_logits[i], label_ids=all_labels)
+                    pred = EvalPrediction(predictions=all_layer_logits[i], label_ids=all_labels.long())
                     metrics = compute_metrics(pred=pred)
 
                     # prepare wandb logs
