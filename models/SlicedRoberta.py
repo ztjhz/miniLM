@@ -32,7 +32,7 @@ class SlicedRoberta(nn.Module):
         # convert all_hidden_states from tuple to tensor
         all_hidden_states = torch.stack([tensor for tensor in all_hidden_states])
 
-        ############# Use the last token of each sequence for classification #############
+        ############# Use the first token of each sequence for classification #############
 
         # get the first position of tokens
         batch_size = all_hidden_states[0].shape[0]
