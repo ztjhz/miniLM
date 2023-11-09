@@ -22,7 +22,7 @@ This report investigates the performance of large and small language models on s
   <img src="public/sliced-model.png" width=500 />
 </p>
 
-- Through a novel slicing technique applied to the LLaMA model, we reveal that not all layers contribute equally, with middle layers often outperforming others.
+- Through a novel slicing technique applied to the Llama model, we reveal that not all layers contribute equally, with middle layers often outperforming others.
 - We extend our analysis to RoBERTa, contrasting the effectiveness of pretraining against fine-tuning on smaller datasets such as IMDb.
 - Additionally, we fine-tune smaller models like RoBERTa, GPT-2, and T5, which demonstrate results comparable with LLMs across several benchmarks, including IMDb, SST-2, and Yelp datasets.
 - We also did a further analysis on slicing RoBERTa and discovered that RoBERTa's capabilities is best realized through fine-tuning across all layers due to its less capable zero-shot abilities.
