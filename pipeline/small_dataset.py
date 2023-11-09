@@ -14,7 +14,6 @@ def main():
     parser = argparse.ArgumentParser(description='Small dataset experiments')
 
     parser.add_argument("--init", choices=['train', 'finetune'], default='train', help="Whether to train from scratch or finetune")
-    parser.add_argument("--method", choices=['chatgpt'], help='What data argumentation method to use')
     parser.add_argument("--model", choices=['roberta'], default='roberta', help='What model to use')
     parser.add_argument("--run_name", type=str, help="Run name of the wandb experiment")
 
@@ -44,10 +43,6 @@ def main():
     dataset = load_dataset("imdb")
     tokenized_datasets = tokenize(dataset, model_name)
     train_dataset, val_dataset, test_dataset = train_val_test_split(tokenized_datasets)
-
-    # data argumentation techniques
-    if args.method:
-        raise NotImplementedError 
 
     # create trainer
     trainer = CustomTrainer(
